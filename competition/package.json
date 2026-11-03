@@ -1,0 +1,17 @@
+{
+  "name": "respeak-competition",
+  "version": "1.0.0",
+  "private": true,
+  "description": "这句话，我想重说 · 无后端互动沟通练习",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/preview.mjs",
+    "start": "node scripts/preview.mjs",
+    "test": "node tests/content.test.mjs",
+    "preview:open": "node scripts/preview.mjs --open"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "type": "module"
+}

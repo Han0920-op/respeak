@@ -1,0 +1,22 @@
+import { mkdir, cp, rm } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+import { resolve, dirname } from 'node:path';
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+await rm(resolve(root,'dist'), {recursive:true,force:true});
+await mkdir(resolve(root,'dist'), {recursive:true});
+for (const path of ['index.html','src','assets']) await cp(resolve(root,path),resolve(root,'dist',path),{recursive:true});
+console.log('✓ 已构建 dist/，可部署到任意静态网站托管服务。');
+// Also ship a self-contained edition for direct opening and visual-builder import.
+const {readFile,writeFile}=await import('node:fs/promises');
+const {scenes}=await import('../src/data.js');
+const art={};
+for(const s of scenes) art[s.id]='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(await readFile(resolve(root,`assets/${s.id}.svg`),'utf8'));
+const mark='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(await readFile(resolve(root,'assets/mark.svg'),'utf8'));
+const css=await readFile(resolve(root,'src/style.css'),'utf8');
+const data=(await readFile(resolve(root,'src/data.js'),'utf8')).replaceAll('export ','');
+const app=(await readFile(resolve(root,'src/app.js'),'utf8')).replace(/^import[^\n]+\n/,'').replace('src="./assets/${s.id}.svg"','src="${ART[s.id]}"').replaceAll('./assets/mark.svg',mark);
+let html=await readFile(resolve(root,'index.html'),'utf8');
+html=html.replace('<link rel="stylesheet" href="./src/style.css">',`<style>${css}</style>`).replaceAll('./assets/mark.svg',mark).replace('<script type="module" src="./src/app.js"></script>',`<script type="module">const ART=${JSON.stringify(art)};\n${data}\n${app}</script>`);
+await writeFile(resolve(root,'dist/standalone.html'),html);
+await writeFile(resolve(root,'一键预览.html'),html);
+console.log('✓ 已生成独立单文件：一键预览.html / dist/standalone.html');
